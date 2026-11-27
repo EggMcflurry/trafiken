@@ -1,0 +1,3 @@
+window.APP_CONFIG = {
+  STHLM_API_KEY: 'DIN_API_NYCKEL_HAR',
+};

@@ -1,0 +1,3 @@
+window.APP_CONFIG = {
+  STHLM_API_KEY: 'BYT_UT_MOT_DIN_EGNA_NYCKEL',
+};

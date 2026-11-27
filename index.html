@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Stockholms parkering & servicedagar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>Sthlm Parkering</h1>
+        <p id="today-label" class="subtitle"></p>
+      </div>
+      <button id="gps-btn" class="btn-primary" type="button">Uppdatera GPS</button>
+    </header>
+
+    <div id="error-box" class="error-box hidden">
+      <p class="error-title">Kunde inte ladda plats eller data</p>
+      <p id="error-text"></p>
+      <button id="test-btn" class="btn-link" type="button">
+        Testa med position i Stockholm city
+      </button>
+    </div>
+
+    <section id="status-card" class="status-card hidden">
+      <div class="status-row">
+        <span id="status-dot" class="dot"></span>
+        <h2 id="status-title"></h2>
+      </div>
+      <p id="status-coords" class="status-coords"></p>
+    </section>
+
+    <section class="section">
+      <h3 id="service-heading">Städdagar & Parkeringsförbud (0)</h3>
+      <div id="service-list" class="card-list"></div>
+    </section>
+
+    <section class="section">
+      <h3 id="allowed-heading">Övriga parkeringsregler & Taxa (0)</h3>
+      <div id="allowed-list" class="card-list"></div>
+    </section>
+
+    <footer class="footer">
+      Kontrollera alltid fysiska vägmärken på plats. Tillfälliga skyltar gäller alltid före informationen på sidan.
+    </footer>
+  </main>
+
+  <script src="config.local.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
