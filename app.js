@@ -5,6 +5,38 @@ const API_KEY =
   (window.APP_CONFIG && window.APP_CONFIG.STHLM_API_KEY) || '';
 const RADIUS_METERS = 60;
 const FALLBACK_COORDS = { lat: 59.334591, lng: 18.06324 };
+const STORAGE_APP_KEY = 'sthlm_p_selected_app';
+
+const PARKING_APPS = [
+  {
+    id: 'easypark',
+    name: 'EasyPark',
+    tag: 'Vanlig i innerstan',
+    url: 'https://easypark.se',
+    note: 'Sök närmaste områdeskod på skylten i EasyPark.',
+  },
+  {
+    id: 'parkster',
+    name: 'Parkster',
+    tag: 'Gata & p-plats',
+    url: 'https://parkster.com/se',
+    note: 'Välj gata/zonnummer i Parkster och starta tiden.',
+  },
+  {
+    id: 'aimo',
+    name: 'Aimo',
+    tag: 'Gata & anläggning',
+    url: 'https://aimopark.se',
+    note: 'Kontrollera om ytan drivs av Aimo eller kommunen.',
+  },
+  {
+    id: 'stockholm_stad',
+    name: 'Stockholms stad / Betalsätt',
+    tag: 'Kommunal gatuparkering',
+    url: 'https://parkering.stockholm',
+    note: 'Gäller kommunala gator med angiven taxa i Stockholm.',
+  },
+];
 
 const WEEKDAYS_SV = [
   'söndag',
@@ -81,10 +113,29 @@ const statusCard = document.getElementById('status-card');
 const statusDot = document.getElementById('status-dot');
 const statusTitle = document.getElementById('status-title');
 const statusCoords = document.getElementById('status-coords');
+const detectedZoneEl = document.getElementById('detected-zone');
+const appRecommendationEl = document.getElementById('app-recommendation');
+const appSelectorEl = document.getElementById('app-selector');
+const selectedAppSummaryEl = document.getElementById('selected-app-summary');
+const selectedStreetInfoEl = document.getElementById('selected-street-info');
+const copySpotBtn = document.getElementById('copy-spot-btn');
+const openAppLinkEl = document.getElementById('open-app-link');
+const copyFeedbackEl = document.getElementById('copy-feedback');
 const serviceHeading = document.getElementById('service-heading');
 const allowedHeading = document.getElementById('allowed-heading');
 const serviceList = document.getElementById('service-list');
 const allowedList = document.getElementById('allowed-list');
+
+let currentSpotContext = {
+  lat: null,
+  lng: null,
+  streetName: 'Okänd gata i närheten',
+  rateText: '',
+  hasCleaningToday: false,
+};
+
+let selectedAppId =
+  localStorage.getItem(STORAGE_APP_KEY) || PARKING_APPS[0].id;
 
 todayLabelEl.textContent = `Idag är det ${todayName}${USE_MOCK_DATA ? ' • Testläge' : ''}`;
 
@@ -108,6 +159,68 @@ function showError(message) {
 function clearError() {
   errorBox.classList.add('hidden');
   errorText.textContent = '';
+}
+
+function getSelectedApp() {
+  return PARKING_APPS.find((app) => app.id === selectedAppId) || PARKING_APPS[0];
+}
+
+function renderAppSelector() {
+  appSelectorEl.innerHTML = '';
+
+  PARKING_APPS.forEach((app) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = app.id === selectedAppId ? 'app-option active' : 'app-option';
+    btn.innerHTML = `
+      <span class="app-option-name">${app.name}</span>
+      <span class="app-option-tag">${app.tag}</span>
+    `;
+    btn.addEventListener('click', () => {
+      selectedAppId = app.id;
+      localStorage.setItem(STORAGE_APP_KEY, app.id);
+      renderAppSelector();
+      updatePaymentSummary();
+    });
+    appSelectorEl.appendChild(btn);
+  });
+}
+
+function updatePaymentSummary() {
+  const app = getSelectedApp();
+  const { streetName, rateText, hasCleaningToday, lat, lng } = currentSpotContext;
+
+  const coordPart =
+    typeof lat === 'number' && typeof lng === 'number'
+      ? ` (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+      : '';
+
+  selectedAppSummaryEl.textContent = `Betala med ${app.name}`;
+  selectedStreetInfoEl.textContent =
+    `Avläst plats: ${streetName}${coordPart}` +
+    (rateText ? ` • ${rateText}` : '') +
+    (hasCleaningToday ? ' • OBS: Städdag idag!' : '');
+
+  appRecommendationEl.textContent = rateText
+    ? `Hittade ${rateText} vid ${streetName}. Välj app nedan – ${app.note.toLowerCase()}`
+    : `Välj vilken parkeringsapp du vill använda vid ${streetName}. ${app.note}`;
+
+  openAppLinkEl.href = app.url;
+  openAppLinkEl.textContent = `Öppna ${app.name}`;
+}
+
+function detectLocationSummary(allowedFeatures, serviceFeatures) {
+  const firstAllowed = allowedFeatures[0] && allowedFeatures[0].properties;
+  const firstService = serviceFeatures[0] && serviceFeatures[0].properties;
+
+  const streetName =
+    (firstAllowed && firstAllowed.STREET_NAME) ||
+    (firstService && firstService.STREET_NAME) ||
+    'Position i Stockholm';
+
+  const rateText = (firstAllowed && firstAllowed.PARKING_RATE) || '';
+
+  return { streetName, rateText };
 }
 
 function renderServiceDays(features) {
@@ -233,6 +346,19 @@ async function fetchParkingData(lat, lng, options = {}) {
       return wd && wd.toLowerCase().includes(todayName);
     });
 
+    const { streetName, rateText } = detectLocationSummary(
+      allowedFeatures,
+      serviceFeatures
+    );
+
+    currentSpotContext = {
+      lat,
+      lng,
+      streetName,
+      rateText,
+      hasCleaningToday,
+    };
+
     statusCard.classList.remove('hidden', 'warning', 'ok');
     statusDot.classList.remove('warning', 'ok');
 
@@ -252,9 +378,11 @@ async function fetchParkingData(lat, lng, options = {}) {
     const suffix = notes.length > 0 ? ` (${notes.join(', ')})` : '';
 
     statusCoords.textContent = `Visar regler inom ${RADIUS_METERS} m från (${lat.toFixed(4)}, ${lng.toFixed(4)})${suffix}.`;
+    detectedZoneEl.textContent = `Avläst plats: ${streetName}${rateText ? ` • ${rateText}` : ''}`;
 
     renderServiceDays(serviceFeatures);
     renderAllowedRules(allowedFeatures);
+    updatePaymentSummary();
   } catch (err) {
     showError('Kunde inte hämta parkeringsdata. Kontrollera anslutningen.');
   } finally {
@@ -292,9 +420,30 @@ function locateMe() {
   );
 }
 
+copySpotBtn.addEventListener('click', async () => {
+  const app = getSelectedApp();
+  const { lat, lng, streetName, rateText } = currentSpotContext;
+  const coordStr =
+    typeof lat === 'number' && typeof lng === 'number'
+      ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+      : 'okänd position';
+  const textToCopy = `${streetName} (${coordStr})${rateText ? ` – ${rateText}` : ''} | App: ${app.name}`;
+
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+    copyFeedbackEl.textContent = `Kopierade: ${textToCopy}`;
+    copyFeedbackEl.classList.remove('hidden');
+  } catch {
+    copyFeedbackEl.textContent = textToCopy;
+    copyFeedbackEl.classList.remove('hidden');
+  }
+});
+
 gpsBtn.addEventListener('click', locateMe);
 testBtn.addEventListener('click', () => {
   fetchParkingData(FALLBACK_COORDS.lat, FALLBACK_COORDS.lng, { fallbackUsed: true });
 });
 
+renderAppSelector();
+updatePaymentSummary();
 locateMe();

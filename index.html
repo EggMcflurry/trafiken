@@ -33,6 +33,31 @@
         <h2 id="status-title"></h2>
       </div>
       <p id="status-coords" class="status-coords"></p>
+      <p id="detected-zone" class="detected-zone"></p>
+    </section>
+
+    <section class="section" id="payment-section">
+      <h3>Betala med parkeringsapp</h3>
+      <div class="card payment-card">
+        <p id="app-recommendation" class="card-meta"></p>
+
+        <div id="app-selector" class="app-grid" role="group" aria-label="Välj parkeringsapp"></div>
+
+        <div class="payment-summary">
+          <div>
+            <span class="citation-label">Vald app & plats</span>
+            <strong id="selected-app-summary">Ingen app vald ännu</strong>
+            <p id="selected-street-info" class="card-meta"></p>
+          </div>
+          <div class="payment-actions">
+            <button id="copy-spot-btn" class="btn-secondary" type="button">Kopiera plats</button>
+            <a id="open-app-link" class="btn-pay" href="#" target="_blank" rel="noopener noreferrer">
+              Öppna app
+            </a>
+          </div>
+        </div>
+        <p id="copy-feedback" class="copy-feedback hidden"></p>
+      </div>
     </section>
 
     <section class="section">

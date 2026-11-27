@@ -130,6 +130,13 @@ body {
   color: var(--muted);
 }
 
+.detected-zone {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
 .section {
   margin-top: 20px;
 }
@@ -204,6 +211,101 @@ body {
   font-size: 11px;
   color: var(--muted);
   margin-bottom: 2px;
+}
+
+.payment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.app-option {
+  min-width: 0;
+  background: #0f172a;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.app-option:hover {
+  border-color: #64748b;
+}
+
+.app-option.active {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.18);
+}
+
+.app-option-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.app-option-tag {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.payment-summary {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: #334155;
+  color: var(--text);
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-pay {
+  background: var(--ok);
+  color: #052e16;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-feedback {
+  margin: 0;
+  font-size: 12px;
+  color: #86efac;
 }
 
 .error-box {
